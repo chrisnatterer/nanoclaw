@@ -471,6 +471,11 @@ async function runQuery(
         'NotebookEdit',
         'mcp__nanoclaw__*',
         'mcp__gmail__*',
+        'mcp__airtable__*',
+        'mcp__google-calendar__*',
+        'mcp__google-tasks__*',
+        'mcp__notion__*',
+        'mcp__stripe__*',
       ],
       env: sdkEnv,
       permissionMode: 'bypassPermissions',
@@ -489,6 +494,45 @@ async function runQuery(
         gmail: {
           command: 'npx',
           args: ['-y', '@gongrzhe/server-gmail-autoauth-mcp'],
+        },
+        airtable: {
+          command: 'npx',
+          args: ['airtable-mcp-server'],
+          env: {
+            AIRTABLE_API_KEY: process.env.AIRTABLE_API_KEY || '',
+          },
+        },
+        'google-calendar': {
+          command: 'npx',
+          args: ['@cocal/google-calendar-mcp'],
+          env: {
+            GOOGLE_OAUTH_CREDENTIALS: '/home/node/.google-calendar-mcp/gcp-oauth.keys.json',
+          },
+        },
+        'google-tasks': {
+          command: 'npx',
+          args: ['mcp-googletasks-vrob'],
+          env: {
+            GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+            GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
+            TOKEN_PATH: '/home/node/.config/mcp-googletasks-vrob/token.json',
+          },
+        },
+        notion: {
+          command: 'notion-mcp-server',
+          args: [],
+          env: {
+            NOTION_TOKEN: process.env.NOTION_TOKEN || '',
+            NO_PROXY: 'api.notion.com',
+            no_proxy: 'api.notion.com',
+          },
+        },
+        stripe: {
+          command: 'npx',
+          args: ['-y', '@stripe/mcp', '--tools=all'],
+          env: {
+            STRIPE_API_KEY: process.env.STRIPE_API_KEY || '',
+          },
         },
       },
       hooks: {

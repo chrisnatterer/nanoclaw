@@ -186,6 +186,34 @@ function buildVolumeMounts(
     });
   }
 
+  // Google Calendar MCP credentials (OAuth keys + tokens)
+  const gcalKeysDir = path.join(homeDir, '.google-calendar-mcp');
+  if (fs.existsSync(gcalKeysDir)) {
+    mounts.push({
+      hostPath: gcalKeysDir,
+      containerPath: '/home/node/.google-calendar-mcp',
+      readonly: true,
+    });
+  }
+  const gcalTokensDir = path.join(homeDir, '.config', 'google-calendar-mcp');
+  if (fs.existsSync(gcalTokensDir)) {
+    mounts.push({
+      hostPath: gcalTokensDir,
+      containerPath: '/home/node/.config/google-calendar-mcp',
+      readonly: false, // MCP may need to refresh OAuth tokens
+    });
+  }
+
+  // Google Tasks MCP credentials (OAuth client + tokens)
+  const gtasksTokensDir = path.join(homeDir, '.config', 'mcp-googletasks-vrob');
+  if (fs.existsSync(gtasksTokensDir)) {
+    mounts.push({
+      hostPath: gtasksTokensDir,
+      containerPath: '/home/node/.config/mcp-googletasks-vrob',
+      readonly: false, // MCP may need to refresh OAuth tokens
+    });
+  }
+
   // Per-group IPC namespace: each group gets its own IPC directory
   // This prevents cross-group privilege escalation via IPC
   const groupIpcDir = resolveGroupIpcPath(group.folder);
@@ -253,6 +281,23 @@ async function buildContainerArgs(
 
   // Pass host timezone so container's local time matches the user's
   args.push('-e', `TZ=${TIMEZONE}`);
+
+  // Pass MCP server credentials into the container
+  if (process.env.AIRTABLE_API_KEY) {
+    args.push('-e', `AIRTABLE_API_KEY=${process.env.AIRTABLE_API_KEY}`);
+  }
+  if (process.env.NOTION_TOKEN) {
+    args.push('-e', `NOTION_TOKEN=${process.env.NOTION_TOKEN}`);
+  }
+  if (process.env.GOOGLE_CLIENT_ID) {
+    args.push('-e', `GOOGLE_CLIENT_ID=${process.env.GOOGLE_CLIENT_ID}`);
+  }
+  if (process.env.GOOGLE_CLIENT_SECRET) {
+    args.push('-e', `GOOGLE_CLIENT_SECRET=${process.env.GOOGLE_CLIENT_SECRET}`);
+  }
+  if (process.env.STRIPE_API_KEY) {
+    args.push('-e', `STRIPE_API_KEY=${process.env.STRIPE_API_KEY}`);
+  }
 
   // OneCLI gateway handles credential injection — containers never see real secrets.
   // The gateway intercepts HTTPS traffic and injects API keys or OAuth tokens.
